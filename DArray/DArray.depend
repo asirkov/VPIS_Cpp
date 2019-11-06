@@ -1,0 +1,18 @@
+# depslib dependency file v1.0
+1572380347 source:d:\cpp projects\darray\exception.cpp
+	<string>
+
+1572472621 source:d:\cpp projects\darray\main.cpp
+	<iostream>
+	"DArray.h"
+
+1572473616 d:\cpp projects\darray\darray.h
+	<cstdlib>
+	<sstream>
+	<iostream>
+	<string>
+	"Exception.cpp"
+
+1572380347 d:\cpp projects\darray\exception.cpp
+	<string>
+

@@ -1,0 +1,21 @@
+# depslib dependency file v1.0
+1572380592 source:d:\cpp projects\vector\main.cpp
+	<iostream>
+	"Vector.h"
+
+1572380497 d:\cpp projects\vector\vector.h
+	<cstdlib>
+	<sstream>
+	<iostream>
+	<string>
+	"Exception.cpp"
+
+1572290462 source:d:\cpp projects\vector\vector.cpp
+	"Vector.h"
+
+1572380347 source:d:\cpp projects\vector\exception.cpp
+	<string>
+
+1572380347 d:\cpp projects\vector\exception.cpp
+	<string>
+
