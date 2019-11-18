@@ -27,23 +27,24 @@ private:
 
 public:
     //constructors
-    DArray(uint newSizeI = 8, uint newSizeJ = 8);
-    DArray(DArray &);           // = delete;
+    DArray(uint newSizeI = 4, uint newSizeJ = 4);
+    DArray(DArray &); // = delete;
     DArray(DArray &&);
 
     //methods
     bool isEmpty();
-    uint getSize();
+    uint getSizeI();
+    uint getSizeJ();
 
-    bool add(T);
-    bool add(T, uint);
-    bool addFirst(T);
-    bool addLast(T);
+    void setSize(uint , uint );
 
-    T removeElement(T);
-    T del(uint);
-    T delFirst();
-    T delLast();
+    bool set(T , uint , uint );
+    bool add(T , uint , uint );
+    T* delI(uint );
+    T* delJ(uint );
+
+
+    void setData(T** , uint , uint );
 
     //may be private
     std::string toString();
@@ -53,11 +54,11 @@ public:
     void fill(T);
 
     //operators
-    T& operator()(uint, uint );
 
     bool operator==(DArray& );
     void operator=(DArray& );
 
+    T operator()(uint , uint );
 
     friend DArray<T> operator+(DArray<T> array1, DArray<T> array2) {
         if(array1.getSizeI() != array2.getSizeI() || array1.getSizeJ() != array2.getSizeJ())
@@ -132,11 +133,19 @@ public:
         stream << obj.toString();
         return stream;
     };
+
     friend std::istream& operator>>(std::istream& stream, DArray& obj) {
-        for(uint i = 0; i < obj.getSize(); i++)
-            stream >> obj[i];
+        for(uint i = 0; i < obj.getSizeI(); i++)
+            for(uint j = 0; j < obj.getSizeJ(); j++)
+                stream >> obj.data[i][j];  //obj(i, j);
         return stream;
     };
+
+    ~DArray() {
+        for(uint k = 0; k < this->getSizeI(); ++k)
+            delete this->data[k];
+        delete this->data;
+    }
 };
 
 
@@ -146,7 +155,7 @@ template <typename T>
 DArray<T>::DArray(uint newSizeI, uint newSizeJ) {
     T** tmp = new T*[newSizeI];
 
-    for(int i = 0; i < newSizeI; i++)
+    for(uint i = 0; i < newSizeI; i++)
         tmp[i] = new T[newSizeJ];
 
     this->data = tmp;
@@ -159,80 +168,141 @@ DArray<T>::DArray(uint newSizeI, uint newSizeJ) {
 
 template <typename T>
 DArray<T>::DArray(DArray &copy) {
-
+    this->setData(copy->toArray(), copy->getSizeI(), copy->getSizeJ());
 }
 
+/// don`t use it
 template <typename T>
 DArray<T>::DArray(DArray &&move) {
-
+    this->data = move.toArray();
+    this->sizeI = move.getSizeI();
+    this->sizeJ = move.getSizeJ();
 }
 
 
 //methods
 
 template <typename T>
-uint DArray<T>::getSize() { return this->size; }
+uint DArray<T>::getSizeI() { return this->sizeI; }
 
 template <typename T>
-bool DArray<T>::isEmpty() { return this->size == 0;}
+uint DArray<T>::getSizeJ() { return this->sizeJ; }
 
-
-/**
- * param:   newElement - element, that may be added
- *
- * returns: true, if element has been added,
- *          false, if array has not been initialized
- */
 template <typename T>
-bool DArray<T>::add(T newElement) {
+bool DArray<T>::isEmpty() { return this->getSizeI() == 0 && this->getSizeJ() == 0;}
+
+
+/// if data has no enougth capacity, throw exception
+template <typename T>
+bool DArray<T>::set(T element, uint i, uint j) {
+    if(i > this->sizeI || j > this->sizeJ)
+        throw IndexOutOfBoundsException("set(T , uint ,uint)");
+    this->data[i][j] = element;
+}
+
+/// possible problem
+template <typename T>
+void DArray<T>::setData(T** newData, uint i, uint j) {
+    /// at here
+    this->sizeI = i;
+    this->sizeJ = j;
+
+    for(uint k = 0; k < this->getSizeI(); ++k)
+        delete this->data[k];
+    delete this->data;
+
+    this->data = new T*[i];
+    for(uint k = 0; k < i; ++k) {
+        this->data[k] = new T[j];
+
+        for(uint l = 0; l < j; ++l)
+            this->data[k][l] = newData[k][l];
+    }
+}
+
+
+template <typename T>
+void DArray<T>::setSize(uint i, uint j) {
+    uint newI = i;
+    uint newJ = j;
+
+    T** temp = new T*[newI];
+    for(uint k = 0; k < newI; ++k) {
+        temp[k] = new T[newJ];
+        for(uint l = 0; l < newJ; ++l)
+            temp[k][l] = 0;
+    }
+
+    uint tempI = newI <= this->getSizeI() ? newI : this->getSizeI();
+    uint tempJ = newJ <= this->getSizeJ() ? newJ : this->getSizeJ();
+
+    for(uint k = 0; k < tempI; ++k)
+        for(uint l = 0; l < tempJ; ++l)
+            temp[k][l] = this->data[k][l];
+
+    this->setData(temp, i, j);
+}
+
+/// if data has not enoght capacity, create it
+template <typename T>
+bool DArray<T>::add(T element, uint i, uint j) {
+    if((i + 1) > this->getSizeI() || (j + 1) > this->getSizeJ() ) {
+
+        uint newI = (i + 1) > this->getSizeI() ? (i + 1) : this->getSizeI();
+        uint newJ = (j + 1) > this->getSizeJ() ? (j + 1) : this->getSizeJ();
+
+        this->setSize(newI, newJ);
+        /// maybe have to return false, if capacity is not enought?
+    }
+
+    this->set(element, i, j);
     return true;
 }
 
-/**
- * param:   newElement - element, that may be added
- *          index - index, where element were added
- *
- * returns: true, if element has been added,
- *          false, if array has not been initialized, or if index out of bounds
- */
+
+
+
+/// delete the row
 template <typename T>
-bool DArray<T>::add(T newElement, uint index) {
-    return true;
+T* DArray<T>::delI(uint i) {
+    if(i > this->getSizeI())
+        throw IndexOutOfBoundsException("delI(uint )");
+    T* result = this->data[i];
+
+    for(uint k = i; k < this->getSizeI() - 1; ++k)
+        this->data[k] = this->data[k + 1];
+
+    delete this->data[this->getSizeI()];
+    this->sizeI--;
+
+    return result;
 }
 
-template <typename T>
-bool DArray<T>::addFirst(T newElement) { return add(newElement, 0); }
 
 template <typename T>
-bool DArray<T>::addLast(T newElement) { return add(newElement); }
+T* DArray<T>::delJ(uint j) {
+    if(j > this->getSizeJ())
+        throw IndexOutOfBoundsException("delJ(uint )");
+    T* result = new T[this->getSizeI()];
 
-/**
- * param:   element - element that may be deleted
- *
- * returns: element, that has been delete,
- *          null, if index out of bounds, or element is not contains
- */
-template <typename T>
-T DArray<T>::removeElement(T element) {
+    T** newData = new T*[this->getSizeJ() - 1];
 
+    for(uint k = 0; k < this->getSizeI(); ++k ) {
+        /// return statement
+        result[k] = this->data[k][j];
+
+        /// its can be in one for, get from tail
+        for(uint l = 0; l < j; ++l)
+            newData[k][l] = this->data[k][l];
+
+        for(uint l = j; l < this->getSizeJ() - 1; ++l)
+            newData[k][l] = this->data[k][l + 1];
+    }
+
+    this->setData(newData, this->getSizeI(), this->getSizeJ() - 1);
+
+    return result;
 }
-
-/**
- * param:   index - index of element that may be deleted
- *
- * returns: element, that has been deleted,
- *          null, if index out of bounds, or array has not been initialized
- */
-template <typename T>
-T DArray<T>::del(uint index) {
-
-}
-
-template <typename T>
-T DArray<T>::delFirst() { return del(0); }
-
-template <typename T>
-T DArray<T>::delLast() { return del(this->size - 1); }
 
 
 template <typename T>
@@ -256,13 +326,8 @@ std::string DArray<T>::toString() {
 template <typename T>
 T** DArray<T>::toArray() { return this->data; }
 
-/**
- * fill DArray element values
- */
 template <typename T>
 void DArray<T>::fill(T element) {
-    //for(uint i = 0; i < this->size; i++)
-    //    data[i] = element;
     for(uint i = 0; i < this->sizeI; i++)
         for(uint j = 0; j < this->sizeJ; j++)
             data[i][j] = element;
@@ -272,10 +337,10 @@ void DArray<T>::fill(T element) {
 //operators
 
 template <typename T>
-T& DArray<T>::operator()(uint indexI, uint indexJ) {
-    if(indexI > this->sizeI || indexJ > this->sizeJ)
-        throw IndexOutOfBoundsException("operator[][]");
-    return *&(this->data[indexI][indexJ]);
+T DArray<T>::operator()(uint i, uint j) {
+    if(i > this->sizeI || j > this->sizeJ)
+        throw IndexOutOfBoundsException("operator(,)");
+    return *&(this->data[i][j]);
 }
 
 template <typename T>
@@ -291,12 +356,12 @@ bool DArray<T>::operator==(DArray& anotherDArray) {
 
 template <typename T>
 void DArray<T>::operator=(DArray& anotherDArray) {
-    T** tmp = new T[anotherDArray.getSizeI()][anotherDArray.getSizeJ()];
-    for(uint i = 0; i < anotherDArray.getSizeI(); i++)
-        for(uint j = 0; j < anotherDArray.getSizeJ(); j++)
-            tmp[i][j] = anotherDArray[i][j];
+    //T** tmp = new T[anotherDArray.getSizeI()][anotherDArray.getSizeJ()];
+    //for(uint i = 0; i < anotherDArray.getSizeI(); i++)
+    //    for(uint j = 0; j < anotherDArray.getSizeJ(); j++)
+    //        tmp[i][j] = anotherDArray[i][j];
     delete data;
-    this->data = tmp;
+    this->data = copy(anotherDArray.getData());
     this->sizeI = anotherDArray.getSizeI();
     this->sizeJ = anotherDArray.getSizeJ();
 }

@@ -16,3 +16,20 @@
 1572380347 d:\cpp projects\darray\exception.cpp
 	<string>
 
+1572380347 source:d:\cpp projects\vpis\vpis_cpp\darray\exception.cpp
+	<string>
+
+1574119179 source:d:\cpp projects\vpis\vpis_cpp\darray\main.cpp
+	<iostream>
+	"DArray.h"
+
+1574119858 d:\cpp projects\vpis\vpis_cpp\darray\darray.h
+	<cstdlib>
+	<sstream>
+	<iostream>
+	<string>
+	"Exception.cpp"
+
+1572380347 d:\cpp projects\vpis\vpis_cpp\darray\exception.cpp
+	<string>
+
